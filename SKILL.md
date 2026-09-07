@@ -7,6 +7,8 @@ description: Walks through connecting a Mac to a Debian (or other Linux) machine
 
 This skill covers first-time setup of SSH between a Mac and a Debian (or Debian-derived, e.g. Ubuntu/Raspberry Pi OS) machine, and the common follow-on workflows people reach for right after: skipping the password, shortening the command, and unsticking a failed connection.
 
+Commands below use `<username>` and `<debian-ip>` as placeholders — substitute the actual account name and address for this user's machine before handing over or running any command. Never leave the angle brackets in a command you actually give the user to run.
+
 **Default to explaining/handing over commands rather than running them yourself.** Most of Step 1 requires `sudo` and runs *on the Debian machine*, which you typically don't have a terminal session on — and even when you do, installing packages and enabling system services are exactly the kind of system-level changes that should go through the user, interactively, so they see what's happening and can enter their own password. Give the user the commands to paste into their own terminal (Mac Terminal for Step 2, a Debian console/keyboard-and-monitor session or an existing session for Step 1) rather than trying to execute Step 1 for them. If you're already in a shell that's genuinely on the Debian box (e.g. the user has SSH'd in and handed you the terminal), it's fine to run the read-only checks (`ip a`, `systemctl status ssh`) yourself to help diagnose — just don't silently run `sudo apt install` or flip service state without the user asking you to.
 
 ## Step 1: Prepare the Debian machine
@@ -34,10 +36,10 @@ Look for the `inet` line under the active network interface (commonly `eth0`, `w
 The Mac's Terminal app ships with an SSH client already — no install needed.
 
 ```bash
-ssh username@debian_ip_address
+ssh <username>@<debian-ip>
 ```
 
-For example: `ssh josh@192.168.1.50`
+For example, if the account is `alice` and the machine's address is `192.168.1.50`: `ssh alice@192.168.1.50`
 
 First-time connections show a host key fingerprint prompt; typing `yes` accepts it and pins that fingerprint for future connections (this is what protects against a silent man-in-the-middle later — if the fingerprint ever changes unexpectedly on a *subsequent* connection, that's worth flagging to the user rather than dismissing). Then it prompts for the Debian account's password — the terminal shows no cursor movement or asterisks while typing, which is normal, not a hang.
 
@@ -55,10 +57,10 @@ On the Mac:
 
 ```bash
 ssh-keygen -t ed25519
-ssh-copy-id username@debian_ip_address
+ssh-copy-id <username>@<debian-ip>
 ```
 
-`ssh-keygen` only needs to be run once ever (skip it if `~/.ssh/id_ed25519` already exists — reusing the same key across machines is fine). `ssh-copy-id` will ask for the Debian password one last time, then copies the public key into `~/.ssh/authorized_keys` on the Debian side. After that, `ssh username@debian_ip_address` logs straight in.
+`ssh-keygen` only needs to be run once ever (skip it if `~/.ssh/id_ed25519` already exists — reusing the same key across machines is fine). `ssh-copy-id` will ask for the Debian password one last time, then copies the public key into `~/.ssh/authorized_keys` on the Debian side. After that, `ssh <username>@<debian-ip>` logs straight in.
 
 ## Optional: a short alias instead of the full command
 
@@ -66,8 +68,8 @@ Once the user is tired of typing the username/IP every time, add a `Host` block 
 
 ```
 Host debian
-    HostName debian_ip_address
-    User username
+    HostName <debian-ip>
+    User <username>
 ```
 
 From then on, `ssh debian` does the same thing as the full command. This is purely a Mac-side convenience file — nothing needs to change on the Debian machine. If the user has several such machines, this is also where each one's identity file (`IdentityFile ~/.ssh/id_ed25519`) or a non-default port can live, so it's the natural place to point them if they ask "how do I avoid retyping this."
